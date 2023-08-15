@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { getInitialPokemonData } from "../reducers/getInitialPokemonData"
 import { getPokemonsData } from "../reducers/getPokemonsData";
-import { PokemonInitialStateType } from "../../utils/types";
+import { generatedPokemonType, PokemonInitialStateType } from "../../utils/types";
 
 const initialState: PokemonInitialStateType = {
   allPokemon: undefined,
@@ -14,7 +14,30 @@ const initialState: PokemonInitialStateType = {
 export const PokemonSlice = createSlice( {
   name: "pokemon",
   initialState,
-  reducers: {},
+  reducers: {
+    addPokemonToCompareQueue: ( state, action ) => {
+      // Check if the id of each pokemon in the compare queue is the same as the id of the pokemon that we want to add
+      const index = state.compareQueue.findIndex(
+        ( pokemon: generatedPokemonType ) => pokemon.id === action.payload.id
+      )
+      // If the pokemon is already in the compare queue, remove it
+      if ( index === -1 ) {
+        if (state.compareQueue.length === 2) {
+          // Remove the last pokemon from the compare queue
+          state.compareQueue.pop()
+        }
+        state.compareQueue.unshift( action.payload )
+      }
+    },
+    removePokemonFromCompareQueue: ( state, action ) => {
+      const index = state.compareQueue.findIndex(
+        ( pokemon: generatedPokemonType ) => pokemon.id === action.payload.id
+      )
+      const queue = [...state.compareQueue]
+      queue.splice( index, 1 )
+      state.compareQueue = queue
+    }
+  },
   extraReducers: ( builder ) => {
     // getInitialPokemonData -> will be used to get all pokemon data
     builder.addCase( getInitialPokemonData.fulfilled, ( state, action ) => {
@@ -27,4 +50,4 @@ export const PokemonSlice = createSlice( {
   },
 } )
 
-export const {} = PokemonSlice.actions
+export const {addPokemonToCompareQueue, removePokemonFromCompareQueue} = PokemonSlice.actions
